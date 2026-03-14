@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════
 // CONFIG — Worker URL (set after deploying worker.js)
 // ═══════════════════════════════════════════════════
-const WORKER_URL = 'https://leetsolve-proxy.shreyanroyom.workers.dev';
+const WORKER_URL = '__WORKER_URL__';
 
 // ═══════════════════════════════════════════════════
 // SYSTEM PROMPT
