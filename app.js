@@ -1,8 +1,7 @@
 // ═══════════════════════════════════════════════════
 // CONFIG — Worker URL (set after deploying worker.js)
 // ═══════════════════════════════════════════════════
-
-const WORKER_URL = '__WORKER_URL__';
+const WORKER_URL = 'https://leetsolve-proxy.shreyanroyom.workers.dev';
 
 // ═══════════════════════════════════════════════════
 // SYSTEM PROMPT
@@ -1063,17 +1062,98 @@ document.getElementById('tabAdd').onclick = newTab;
 // ═══════════════════════════════════════════════════
 let editor = null, editor2 = null, splitActive = false;
 
+// Python keywords + builtins for autocomplete
+const PY_WORDS = [
+  // keywords
+  'False','None','True','and','as','assert','async','await','break','class',
+  'continue','def','del','elif','else','except','finally','for','from',
+  'global','if','import','in','is','lambda','nonlocal','not','or','pass',
+  'raise','return','try','while','with','yield',
+  // builtins
+  'abs','all','any','bin','bool','breakpoint','bytearray','bytes','callable',
+  'chr','classmethod','compile','complex','delattr','dict','dir','divmod',
+  'enumerate','eval','exec','filter','float','format','frozenset','getattr',
+  'globals','hasattr','hash','help','hex','id','input','int','isinstance',
+  'issubclass','iter','len','list','locals','map','max','memoryview','min',
+  'next','object','oct','open','ord','pow','print','property','range',
+  'repr','reversed','round','set','setattr','slice','sorted','staticmethod',
+  'str','sum','super','tuple','type','vars','zip',
+  // common patterns
+  'self','cls','args','kwargs','__init__','__str__','__repr__','__len__',
+  '__main__','collections','defaultdict','deque','Counter','heapq','heappush',
+  'heappop','itertools','functools','math','sys','os','re','json',
+  'append','extend','insert','remove','pop','sort','reverse','copy',
+  'keys','values','items','get','update','split','join','strip','replace',
+  'startswith','endswith','lower','upper','find','count','format',
+  'read','write','close','open','with','TypeError','ValueError','KeyError',
+  'IndexError','AttributeError','Exception','raise','try','except',
+];
+
+function pythonHint(cm) {
+  const cur = cm.getCursor();
+  const token = cm.getTokenAt(cur);
+  const start = token.start;
+  const end   = cur.ch;
+  const word  = token.string.slice(0, end - start);
+  if (!word || word.length < 1) return null;
+
+  // Combine Python words with words already in the editor
+  const editorText = cm.getValue();
+  const editorWords = [...new Set(editorText.match(/[a-zA-Z_]\w*/g) || [])];
+  const allWords = [...new Set([...PY_WORDS, ...editorWords])];
+
+  const lw = word.toLowerCase();
+  const list = allWords.filter(w => w.toLowerCase().startsWith(lw) && w !== word);
+  if (!list.length) return null;
+  return { list, from: CodeMirror.Pos(cur.line, start), to: CodeMirror.Pos(cur.line, end) };
+}
+
 function makeEditor(el, value) {
   const lineN = localStorage.getItem('ls-lineNumbers');
   const lineW = localStorage.getItem('ls-lineWrapping');
-  return CodeMirror(el, {
+  const cm = CodeMirror(el, {
     value: value || DEFAULT_CODE,
     mode: 'python', lineNumbers: lineN === null ? true : lineN === 'true',
     indentUnit: 4, tabSize: 4, indentWithTabs: false,
     autoCloseBrackets: true, matchBrackets: true,
     lineWrapping: lineW === 'true',
-    extraKeys: { 'Ctrl-Enter':runCode,'Cmd-Enter':runCode,'Ctrl-/':'toggleComment','Tab':'indentMore','Shift-Tab':'indentLess' }
+    extraKeys: {
+      'Ctrl-Enter': runCode, 'Cmd-Enter': runCode,
+      'Ctrl-/': 'toggleComment',
+      'Shift-Tab': 'indentLess',
+      'Tab': function(cm) {
+        // If autocomplete is open, pick first suggestion; else indent
+        const hints = document.querySelector('.CodeMirror-hints');
+        if (hints) {
+          // Let show-hint handle it
+          return CodeMirror.Pass;
+        }
+        // Trigger autocomplete if mid-word, else indent
+        const cur = cm.getCursor();
+        const token = cm.getTokenAt(cur);
+        const word = token.string.trim();
+        if (word.length >= 1 && /[a-zA-Z_]/.test(word[0])) {
+          cm.showHint({ hint: pythonHint, completeSingle: true });
+        } else {
+          cm.execCommand('indentMore');
+        }
+      },
+    }
   });
+
+  // Auto-trigger dropdown as user types
+  cm.on('inputRead', function(instance, change) {
+    if (change.origin === '+input' && change.text[0].match(/[a-zA-Z_]/)) {
+      const cur = instance.getCursor();
+      const token = instance.getTokenAt(cur);
+      const word = token.string;
+      if (word.length >= 2) {
+        instance.showHint({ hint: pythonHint, completeSingle: false });
+      }
+    }
+  });
+
+  return cm;
 }
 
 function initEditor() {
