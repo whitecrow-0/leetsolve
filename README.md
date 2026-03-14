@@ -50,4 +50,4 @@ LeetSolve explains any LeetCode problem step by step — in plain English, with 
 
 ## License
 
-MIT
+![MIT](LICENSE)
