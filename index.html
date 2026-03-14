@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LeetSolve</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -11,9 +12,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="style.css">
-<link rel="icon" type="image/png" href="logo.png">
 </head>
 <body class="theme-dark">
 
@@ -236,7 +239,7 @@
 
   <!-- HEADER -->
   <header>
-    <div class="logo"><div class="logo-dot"></div>LeetSolve</div>
+    <div class="logo"><img src="logo.png" class="logo-img" alt="LeetSolve">LeetSolve</div>
     <div class="hdr-center">
       <div class="complexity-bar" id="complexityBar" style="display:none">
         <span class="cx-badge cx-time" id="cxTime"></span>
@@ -327,7 +330,7 @@
           </svg>
         </button>
       </div>
-      <div class="input-disclaimer"><i class="fa-solid fa-triangle-exclamation"></i> LeetSolve is AI-powered and can make mistakes. Always double-check solutions before submitting.</div>
+      <div class="input-disclaimer"><i class="fa-solid fa-triangle-exclamation"></i> AI-powered — always double-check solutions</div>
     </div>
 
     <!-- Vertical Resizer -->
@@ -374,8 +377,8 @@
 
   <!-- Mobile nav -->
   <div class="mobile-nav">
-    <button class="mob-btn active" id="mobChat" onclick="mobileTab('chat')"><i class="fa-solid fa-comments"></i> Chat</button>
-    <button class="mob-btn" id="mobEditor" onclick="mobileTab('editor')"><i class="fa-solid fa-code"></i> Editor</button>
+    <button class="mob-btn active" id="mobChat" onclick="mobileTab('chat')"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
+    <button class="mob-btn" id="mobEditor" onclick="mobileTab('editor')"><i class="fa-solid fa-code"></i><span>Editor</span></button>
   </div>
 
 </div>
