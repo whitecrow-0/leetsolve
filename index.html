@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetSolve</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-overlay" id="shortcutsModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts</span>
+      <button class="modal-close" onclick="closeModal('shortcutsModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="shortcut-group">
+        <div class="sg-label">Editor</div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>Enter</kbd><span>Run code</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>/</kbd><span>Toggle comment</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>S</kbd><span>Download .py file</span></div>
+        <div class="shortcut-row"><kbd>Tab</kbd><span>Indent</span></div>
+        <div class="shortcut-row"><kbd>Shift</kbd><kbd>Tab</kbd><span>Unindent</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>Z</kbd><span>Undo</span></div>
+      </div>
+      <div class="shortcut-group">
+        <div class="sg-label">App</div>
+        <div class="shortcut-row"><kbd>?</kbd><span>Show shortcuts</span></div>
+        <div class="shortcut-row"><kbd>/</kbd><span>Focus chat input</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>K</kbd><span>Search problems</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>T</kbd><span>New tab</span></div>
+        <div class="shortcut-row"><kbd>Ctrl</kbd><kbd>W</kbd><span>Close tab</span></div>
+        <div class="shortcut-row"><kbd>Esc</kbd><span>Close modal</span></div>
+      </div>
+      <div class="shortcut-group">
+        <div class="sg-label">Chat</div>
+        <div class="shortcut-row"><kbd>Enter</kbd><span>Send message</span></div>
+        <div class="shortcut-row"><kbd>Shift</kbd><kbd>Enter</kbd><span>New line</span></div>
+        <div class="shortcut-row"><kbd><i class="fa-solid fa-arrow-up"></i></kbd><span>Edit last message</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PACKAGES MODAL -->
+<div class="modal-overlay" id="packagesModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-plus"></i> Install Python Packages</span>
+      <button class="modal-close" onclick="closeModal('packagesModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--t2);line-height:1.6">Install packages via micropip. Pure-Python packages only (no C extensions).</p>
+      <div class="pkg-input-row">
+        <input class="pkg-input" id="pkgInput" placeholder="e.g. numpy, sortedcontainers" type="text" onkeydown="if(event.key==='Enter')installPackage()">
+        <button class="btn btn-run" onclick="installPackage()" style="padding:6px 16px">Install</button>
+      </div>
+      <div id="pkgOutput" class="pkg-output"></div>
+      <div class="pkg-presets">
+        <div class="sg-label" style="margin-bottom:8px">Quick install</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <div class="chip" onclick="quickInstall('numpy')">numpy</div>
+          <div class="chip" onclick="quickInstall('pandas')">pandas</div>
+          <div class="chip" onclick="quickInstall('sortedcontainers')">sortedcontainers</div>
+          <div class="chip" onclick="quickInstall('sympy')">sympy</div>
+          <div class="chip" onclick="quickInstall('scipy')">scipy</div>
+          <div class="chip" onclick="quickInstall('networkx')">networkx</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-download"></i> Export</span>
+      <button class="modal-close" onclick="closeModal('exportModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="sg-label" style="margin-bottom:8px">Conversation</div>
+      <div style="display:flex;gap:8px;flex-direction:column;margin-bottom:16px">
+        <button class="btn export-btn" onclick="exportMarkdown()"><i class="fa-solid fa-download"></i> Download chat as Markdown (.md)</button>
+        <button class="btn export-btn" onclick="exportText()"><i class="fa-solid fa-download"></i> Download chat as Plain Text (.txt)</button>
+        <button class="btn export-btn" onclick="copyChat()"><i class="fa-solid fa-copy"></i> Copy chat to clipboard</button>
+      </div>
+      <div class="sg-label" style="margin-bottom:8px">Code</div>
+      <div style="display:flex;gap:8px;flex-direction:column">
+        <button class="btn export-btn" onclick="downloadPy()"><i class="fa-solid fa-download"></i> Download editor as .py file</button>
+        <button class="btn export-btn" onclick="copyCode()"><i class="fa-solid fa-copy"></i> Copy code to clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SNIPPETS MODAL -->
+<div class="modal-overlay" id="snippetsModal">
+  <div class="modal modal-wide">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-code"></i> Code Snippets</span>
+      <button class="modal-close" onclick="closeModal('snippetsModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="snippets-grid" id="snippetsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM SEARCH MODAL -->
+<div class="modal-overlay" id="searchModal">
+  <div class="modal modal-wide">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-magnifying-glass"></i> Search Problems</span>
+      <button class="modal-close" onclick="closeModal('searchModal')">×</button>
+    </div>
+    <div class="modal-body" style="gap:10px">
+      <input class="pkg-input" id="problemSearch" placeholder="Type a problem name or number..." type="text" oninput="filterProblems(this.value)" onkeydown="handleSearchKey(event)" autocomplete="off">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--t3)" id="searchResultCount"></span>
+        <span style="margin-left:auto;display:flex;gap:5px">
+          <span class="diff-filter-btn active" data-diff="All" onclick="setDiffFilter('All')">All</span>
+          <span class="diff-filter-btn easy" data-diff="Easy" onclick="setDiffFilter('Easy')">Easy</span>
+          <span class="diff-filter-btn medium" data-diff="Medium" onclick="setDiffFilter('Medium')">Medium</span>
+          <span class="diff-filter-btn hard" data-diff="Hard" onclick="setDiffFilter('Hard')">Hard</span>
+        </span>
+      </div>
+      <div class="problem-list" id="problemList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HINT MODAL -->
+<div class="modal-overlay" id="hintModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-lightbulb"></i> Hint Mode</span>
+      <button class="modal-close" onclick="closeModal('hintModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--t2);line-height:1.65">Instead of giving the full solution, get progressive hints. Try to solve it yourself first — that's how you actually learn!</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <button class="btn hint-level-btn" onclick="requestHint(1)"><i class="fa-solid fa-seedling"></i><div><strong>Nudge</strong><br><span style="font-size:11px;color:var(--t2)">Just point me in the right direction</span></div></button>
+        <button class="btn hint-level-btn" onclick="requestHint(2)"><i class="fa-solid fa-lightbulb"></i><div><strong>Key Insight</strong><br><span style="font-size:11px;color:var(--t2)">Tell me the aha moment, no code</span></div></button>
+        <button class="btn hint-level-btn" onclick="requestHint(3)"><i class="fa-solid fa-map"></i><div><strong>Algorithm Plan</strong><br><span style="font-size:11px;color:var(--t2)">Step-by-step plan, I'll write the code</span></div></button>
+        <button class="btn hint-level-btn" onclick="requestHint(4)"><i class="fa-solid fa-file-lines"></i><div><strong>Pseudocode</strong><br><span style="font-size:11px;color:var(--t2)">Show me the logic, almost like code</span></div></button>
+        <div style="border-top:1px solid var(--b1);margin:4px 0"></div>
+        <button class="btn hint-level-btn" onclick="requestHint(5)" style="border-color:rgba(184,255,87,.2);background:var(--accent-dim)"><i class="fa-solid fa-circle-check"></i><div><strong>Full Solution</strong><br><span style="font-size:11px;color:var(--t2)">I give up, show me everything</span></div></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title"><i class="fa-solid fa-gear"></i> Settings</span>
+      <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <div class="sg-label">Appearance</div>
+        <div class="setting-row">
+          <span>Theme</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn theme-pick-btn" id="sbtnDark" onclick="applyTheme('theme-dark')"><i class="fa-solid fa-circle-half-stroke"></i> Dark</button>
+            <button class="btn theme-pick-btn" id="sbtnLight" onclick="applyTheme('theme-light')"><i class="fa-regular fa-circle"></i> Light</button>
+            <button class="btn theme-pick-btn" id="sbtnHigh" onclick="applyTheme('theme-high')"><i class="fa-solid fa-circle"></i> Hi-C</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Font size</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn" onclick="changeFontSize(-1)" style="padding:3px 10px">−</button>
+            <span id="fontSizeDisplay" style="font-family:'Geist Mono',monospace;font-size:12px;min-width:28px;text-align:center">13px</span>
+            <button class="btn" onclick="changeFontSize(1)" style="padding:3px 10px">+</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span>Line numbers</span>
+          <label class="toggle-switch"><input type="checkbox" id="toggleLineNumbers" checked onchange="setEditorOption('lineNumbers',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>Line wrapping</span>
+          <label class="toggle-switch"><input type="checkbox" id="toggleLineWrap" onchange="setEditorOption('lineWrapping',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="sg-label">Behaviour</div>
+        <div class="setting-row">
+          <span>Auto-load solution to editor</span>
+          <label class="toggle-switch"><input type="checkbox" id="settingAutoLoad" checked onchange="saveSetting('autoLoad',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>Auto-run after loading solution</span>
+          <label class="toggle-switch"><input type="checkbox" id="settingAutoRun" onchange="saveSetting('autoRun',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>Show typing indicator</span>
+          <label class="toggle-switch"><input type="checkbox" id="settingTyping" checked onchange="saveSetting('showTyping',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>Smart scroll (only scroll if at bottom)</span>
+          <label class="toggle-switch"><input type="checkbox" id="settingSmartScroll" checked onchange="saveSetting('smartScroll',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="sg-label">Data</div>
+        <div class="setting-row">
+          <span>Clear problem history</span>
+          <button class="btn" style="color:var(--red);border-color:rgba(255,85,85,.25)" onclick="clearHistory()">Clear</button>
+        </div>
+        <div class="setting-row">
+          <span>Reset all tabs &amp; chats</span>
+          <button class="btn" style="color:var(--red);border-color:rgba(255,85,85,.25)" onclick="clearAllData()">Reset All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo"><div class="logo-dot"></div>LeetSolve</div>
+    <div class="hdr-center">
+      <div class="complexity-bar" id="complexityBar" style="display:none">
+        <span class="cx-badge cx-time" id="cxTime"></span>
+        <span class="cx-badge cx-space" id="cxSpace"></span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div id="pyBadge" class="py-badge"><i class="fa-solid fa-circle-notch fa-spin"></i> python loading</div>
+      <button class="hdr-btn" onclick="openModal('searchModal')" title="Search problems (Ctrl+K)"><i class="fa-solid fa-magnifying-glass"></i> search</button>
+      <button class="hdr-btn" onclick="openModal('packagesModal')" title="Install packages"><i class="fa-solid fa-plus"></i> packages</button>
+      <button class="hdr-btn" onclick="openModal('snippetsModal')" title="Code snippets">{ } snippets</button>
+      <button class="hdr-btn" onclick="openModal('settingsModal')" title="Settings"><i class="fa-solid fa-gear"></i> settings</button>
+      <button class="hdr-btn" onclick="openModal('shortcutsModal')" title="Shortcuts"><i class="fa-solid fa-question"></i></button>
+    </div>
+  </header>
+
+  <!-- TAB BAR -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab-add" id="tabAdd" title="New tab (Ctrl+T)">+</div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace" id="workspace">
+
+    <!-- Chat side -->
+    <div class="chat-side" id="chatSide">
+      <div class="chat-hdr">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <circle cx="6.5" cy="6.5" r="5.5" stroke="#b8ff57" stroke-width="1"/>
+          <path d="M4 6.5l2 2 3-3" stroke="#b8ff57" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="chat-hdr-title">AI Tutor</span>
+        <div class="hdr-right" style="gap:5px">
+          <button class="hdr-btn" onclick="openModal('hintModal')" title="Hint mode"><i class="fa-solid fa-lightbulb"></i> hints</button>
+          <button class="hdr-btn" onclick="openModal('exportModal')" title="Export"><i class="fa-solid fa-download"></i> export</button>
+          <button class="clr-btn" onclick="clearChat()">clear</button>
+        </div>
+      </div>
+
+      <!-- History bar with difficulty filters -->
+      <div class="history-bar" id="historyBar">
+        <div class="history-label">
+          Recent Problems
+          <span class="history-filters">
+            <span class="hf-btn active" data-f="All" onclick="filterHistory('All')">All</span>
+            <span class="hf-btn easy" data-f="Easy" onclick="filterHistory('Easy')">E</span>
+            <span class="hf-btn medium" data-f="Medium" onclick="filterHistory('Medium')">M</span>
+            <span class="hf-btn hard" data-f="Hard" onclick="filterHistory('Hard')">H</span>
+          </span>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="welcome" id="chatWelcome">
+          <div class="wg">{ }</div>
+          <div class="wt">LeetCode AI Tutor</div>
+          <div class="ws">Ask me any LeetCode problem by name or number. I'll explain it simply — step by step, with real examples.</div>
+          <div class="welcome-chips">
+            <div class="wchip" onclick="chip('Solve LeetCode 1 Two Sum')">Two Sum #1</div>
+            <div class="wchip" onclick="chip('Solve LeetCode 206 Reverse Linked List')">Reverse List #206</div>
+            <div class="wchip" onclick="chip('Solve LeetCode 53 Maximum Subarray')">Max Subarray #53</div>
+            <div class="wchip" onclick="chip('Solve LeetCode 200 Number of Islands')">Islands #200</div>
+            <div class="wchip" onclick="chip('Solve LeetCode 70 Climbing Stairs')">Climbing Stairs #70</div>
+            <div class="wchip" onclick="chip('Solve LeetCode 21 Merge Two Sorted Lists')">Merge Lists #21</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chips" id="chipsRow">
+        <div class="chip" onclick="chip('Solve LeetCode 1 Two Sum')">Two Sum</div>
+        <div class="chip" onclick="chip('Solve LeetCode 206 Reverse Linked List')">Reverse List</div>
+        <div class="chip" onclick="chip('Solve LeetCode 53 Maximum Subarray')">Max Subarray</div>
+        <div class="chip" onclick="chip('Solve LeetCode 200 Number of Islands')">Islands</div>
+        <div class="chip" onclick="chip('Solve LeetCode 322 Coin Change')">Coin Change</div>
+        <div class="chip" onclick="chip('Solve LeetCode 70 Climbing Stairs')">Climbing Stairs</div>
+        <div class="chip" onclick="chip('Review the code in my editor and tell me what is wrong')">Review code</div>
+        <div class="chip" onclick="chip('What pattern should I use for this problem?')">Pattern?</div>
+        <div class="chip" onclick="chip('Give me a random easy LeetCode problem to practice')">Random Easy</div>
+        <div class="chip" onclick="chip('Give me a random medium LeetCode problem to practice')">Random Medium</div>
+      </div>
+
+      <div class="chat-in-row">
+        <textarea class="chat-ta" id="chatIn" placeholder="Ask any LeetCode problem..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M2 8h12M9 3l5 5-5 5" stroke="#080808" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-disclaimer"><i class="fa-solid fa-triangle-exclamation"></i> LeetSolve is AI-powered and can make mistakes. Always double-check solutions before submitting.</div>
+    </div>
+
+    <!-- Vertical Resizer -->
+    <div class="v-resizer" id="vResizer"><div class="v-resizer-line"></div></div>
+
+    <!-- Editor side -->
+    <div class="editor-side" id="editorSide">
+      <div class="etoolbar">
+        <span class="btn btn-py" title="Python 3 via Pyodide">Python 3</span>
+        <button class="btn btn-run" id="runBtn" onclick="runCode()">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M1 1l8 4-8 4z"/></svg>
+          Run
+        </button>
+        <div class="spinner" id="spinner"></div>
+        <div class="tright">
+          <button class="btn" onclick="copyCode()" title="Copy code"><i class="fa-solid fa-copy"></i> copy</button>
+          <button class="btn" onclick="downloadPy()" title="Download .py (Ctrl+S)"><i class="fa-solid fa-download"></i> .py</button>
+          <button class="btn" onclick="toggleSplit()" id="splitBtn" title="Split editor"><i class="fa-solid fa-table-columns"></i> split</button>
+          <button class="btn" onclick="resetEditor()" title="Reset editor"><i class="fa-solid fa-rotate-left"></i> reset</button>
+        </div>
+      </div>
+
+      <div class="editors-wrap" id="editorsWrap">
+        <div class="cm-wrap" id="cmWrap"></div>
+        <div class="editor-divider" id="editorDivider" style="display:none"></div>
+        <div class="cm-wrap" id="cmWrap2" style="display:none"></div>
+      </div>
+
+      <div class="drag-h" id="dragH"></div>
+
+      <div class="out-pane" id="outPane">
+        <div class="out-bar">
+          <span class="out-label">OUTPUT</span>
+          <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+            <span class="run-time" id="runTime"></span>
+            <button class="btn" style="padding:3px 8px;font-size:10px" onclick="clearOut()">×</button>
+          </div>
+        </div>
+        <div class="out-text" id="outText">// press Run or Ctrl+Enter</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav">
+    <button class="mob-btn active" id="mobChat" onclick="mobileTab('chat')"><i class="fa-solid fa-comments"></i> Chat</button>
+    <button class="mob-btn" id="mobEditor" onclick="mobileTab('editor')"><i class="fa-solid fa-code"></i> Editor</button>
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
